@@ -1,0 +1,6 @@
+[submodule "app"]
+	path = app
+	url = git@github.com:suenot/macchill-app.git
+[submodule "landing"]
+	path = landing
+	url = git@github.com:suenot/macchill-landing.git
