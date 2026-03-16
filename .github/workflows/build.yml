@@ -1,0 +1,36 @@
+name: Build MacChill
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build MacChill (Release)
+        working-directory: app
+        run: |
+          xcodebuild \
+            -project MacChill.xcodeproj \
+            -scheme MacChill \
+            -configuration Release \
+            -derivedDataPath build \
+            build
+
+      - name: Copy app to applications/
+        run: |
+          mkdir -p applications
+          cp -r app/build/Build/Products/Release/MacChill.app applications/
+
+      - name: Upload MacChill.app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MacChill.app
+          path: applications/MacChill.app
