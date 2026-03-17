@@ -1,0 +1,38 @@
+name: Release MacChill
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build MacChill (Release)
+        working-directory: app
+        run: |
+          xcodebuild \
+            -project MacChill.xcodeproj \
+            -scheme MacChill \
+            -configuration Release \
+            -derivedDataPath build \
+            build
+
+      - name: Package MacChill.app into zip
+        run: |
+          cd app/build/Build/Products/Release
+          zip -r -y MacChill.zip MacChill.app
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/Build/Products/Release/MacChill.zip
+          generate_release_notes: true
