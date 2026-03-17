@@ -16,13 +16,14 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build MacChill (Release)
+      - name: Build MacChill (Release, arm64)
         working-directory: app
         run: |
           xcodebuild \
             -project MacChill.xcodeproj \
             -scheme MacChill \
             -configuration Release \
+            -arch arm64 \
             -derivedDataPath build \
             build
 
@@ -31,8 +32,28 @@ jobs:
           cd app/build/Build/Products/Release
           zip -r -y MacChill.zip MacChill.app
 
+      - name: Create DMG
+        run: |
+          APP_PATH="app/build/Build/Products/Release/MacChill.app"
+          DMG_PATH="app/build/Build/Products/Release/MacChill.dmg"
+          VOLUME_NAME="MacChill"
+          TMP_DMG="/tmp/MacChill-tmp.dmg"
+
+          # Create temporary DMG with app and Applications symlink
+          hdiutil create -size 50m -fs HFS+ -volname "$VOLUME_NAME" "$TMP_DMG"
+          MOUNT_DIR=$(hdiutil attach "$TMP_DMG" | grep "/Volumes/" | awk '{print $3}')
+          cp -R "$APP_PATH" "$MOUNT_DIR/"
+          ln -s /Applications "$MOUNT_DIR/Applications"
+          hdiutil detach "$MOUNT_DIR"
+
+          # Convert to compressed read-only DMG
+          hdiutil convert "$TMP_DMG" -format UDZO -o "$DMG_PATH"
+          rm "$TMP_DMG"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/Build/Products/Release/MacChill.zip
+          files: |
+            app/build/Build/Products/Release/MacChill.zip
+            app/build/Build/Products/Release/MacChill.dmg
           generate_release_notes: true

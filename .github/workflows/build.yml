@@ -14,13 +14,14 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build MacChill (Release)
+      - name: Build MacChill (Release, arm64)
         working-directory: app
         run: |
           xcodebuild \
             -project MacChill.xcodeproj \
             -scheme MacChill \
             -configuration Release \
+            -arch arm64 \
             -derivedDataPath build \
             build
 
